@@ -1,0 +1,30 @@
+# by Farhadix <baghery.farhad@gmail.com>
+# 6 July 2014
+
+_vagrant()
+{
+    local cur prev opts switches
+    COMPREPLAY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts=$(vagrant --help | egrep '(^\s{5,}.*)' | sed -e 's/^\s*//' | awk '{ print $1 }')
+    
+    if [[ ${cur} == -* && ${prev} == "vagrant" ]] ; then
+        switches=$(vagrant --help | egrep '(^\s*\-.*)' | sed 's/^\s*//' | awk '{ print $2 }')
+        COMPREPLY=( $(compgen -W "${switches}" -- ${cur}) )
+        return 0
+    else
+        if [[ $opts =~ ${prev} && ${prev} != "help" ]]; then
+            opts=$(vagrant $prev --help | egrep '(^\s{3,}.*)' | sed 's/^\s*//' | awk '{ if ($1 !~ /\,/) 
+                                                                                          print $1;
+                                                                                      else
+                                                                                          print $2;}' | sed 's/,//')
+        elif [[ ${prev} == "help" || ! $opts =~ ${prev} ]]; then
+            opts=""
+        fi
+        
+        COMPREPLY=( $(compgen -W "${opts}" ${cur}) )
+        return 0
+    fi
+ }
+ complete -F _vagrant vagrant
